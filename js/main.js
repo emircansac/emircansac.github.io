@@ -1013,7 +1013,7 @@ function switchLanguage(lang) {
     document.documentElement.lang = lang;
     
     // Update page title
-    document.title = lang === 'tr' ? 'Kişisel CV' : 'Personal CV';
+    document.title = lang === 'tr' ? '✦ Emircan Saç' : '✦ Emircan Saç';
     
     // Show/hide content blocks based on language (exclude lang buttons - they use dedicated logic above)
     const allLangBlocks = document.querySelectorAll('[data-lang]');
