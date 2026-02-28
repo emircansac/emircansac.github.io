@@ -790,77 +790,244 @@ body.nav-mode-section .section-content strong {
    ============================================ */
 
 @media (max-width: 768px) {
-    /* Mobile: Switch to vertical layout */
-    .sections-wrapper {
-        flex-direction: column;
-        width: 100vw;
-        height: auto;
-        overflow-x: hidden;
-        overflow-y: visible;
-        scroll-snap-type: none;
-    }
-    
-    .cv-section {
-        width: 100vw;
-        height: auto;
-        min-height: 100vh;
-        border-right: none;
-        border-bottom: 1px solid var(--border-color);
-    }
-    
-    .section-content {
-        height: auto;
-        min-height: 100vh;
-        padding: 40px 20px;
-    }
-    
-    /* Hide navigation on mobile (or make it sticky) */
-    .section-nav {
-        display: none; /* Optional: can be changed to sticky if needed */
-    }
-    
-    /* Language switcher positioning on mobile */
-    .language-switcher {
-        top: 10px;
-        right: 10px;
-        padding: 4px;
-    }
-    
-    .lang-button {
-        padding: 5px 12px;
-        font-size: 12px;
-    }
-    
-    /* Adjust typography for mobile */
-    .cv-section h1 {
-        font-size: 2rem;
-    }
-    
-    .cv-section h2 {
-        font-size: 1.5rem;
-    }
+  /* LAYOUT - Vertical Stack */
+  .sections-wrapper {
+    display: flex !important;
+    flex-direction: column !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    height: 100vh;
+    padding-bottom: 220px;
+    width: 100% !important;
+    scroll-snap-type: none !important;
+  }
 
-    /* Ensure nav-mode-card does not block mobile scrolling */
-    body.nav-mode-card .cv-container::before {
-        opacity: 0;
-    }
+  .cv-section {
+    width: 100%;
+    min-width: 100%;
+    height: auto !important;
+    flex-shrink: 0;
+    scroll-snap-align: none !important;
+    scroll-snap-stop: normal !important;
+    padding: 0;
+    margin-top: 1rem;
+  }
+  
+  .cv-section:last-child {
+    padding-bottom: 100px;
+  }
 
-    body.nav-mode-card .sections-wrapper {
-        overflow-y: visible;
-        overflow-x: hidden;
-    }
+  .section-content {
+    padding: 1.5rem 1rem 2rem 1rem;
+  }
 
-    body.nav-mode-card .section-content {
-        overflow-y: visible;
-    }
+  /* NAVIGATION - Visible at Bottom (2 rows, wrap + center) */
+  /* Override desktop transform/position - prevents nav from being shifted off-screen */
+  body.nav-mode-section .section-nav,
+  body.nav-mode-section .section-nav.is-docked,
+  body.nav-mode-card .section-nav {
+    transform: none !important;
+    left: 0 !important;
+    right: 0 !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
 
-    .nav-card-container {
-        display: none;
-    }
+  .section-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: auto;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 0.4rem;
+    background: var(--role-base, #ffffff);
+    border-top: 1px solid var(--color-border, #e0e0e0);
+    z-index: 100;
+  }
 
-    .nav-backdrop {
-        display: none;
-    }
+  .nav-button {
+    flex: 0 1 calc(20% - 0.2rem);
+    min-width: auto;
+    max-width: 100%;
+    padding: 0.4rem 0.3rem;
+    font-size: 0.7rem;
+    white-space: normal;
+    line-height: 1.2;
+    min-height: 38px;
+    cursor: pointer;
+  }
+
+  .nav-button.active {
+    background: #6B5344 !important;
+    background-color: #6B5344 !important;
+    color: #ffffff !important;
+    font-weight: 600;
+    border-bottom: 3px solid #6B5344;
+    transform: none !important;
+  }
+
+  /* HIDE Desktop-Only UI */
+  .nav-backdrop {
+    display: none !important;
+  }
+
+  .nav-card-container {
+    display: none !important;
+  }
+
+  .scroll-hint {
+    display: none !important;
+  }
+
+  /* IDENTITY BLOCK - Sticky Header Mobile */
+  .identity-block {
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 102;
+    padding: 1rem;
+    background: var(--role-base, #ffffff);
+    border-bottom: 1px solid var(--color-border, #e0e0e0);
+    margin-bottom: 0;
+  }
+
+  .identity-name {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+  }
+
+  .identity-email {
+    font-size: 0.9rem;
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+
+  .identity-writing {
+    font-size: 0.9rem;
+    display: block;
+  }
+
+  /* LANGUAGE SWITCHER - Fixed Top Right */
+  .language-switcher {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 101;
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .lang-button {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* TYPOGRAPHY - Mobile Scaling */
+  .section-content h1 {
+    font-size: 1.75rem;
+    margin-bottom: 1.5rem;
+    margin-top: 0;
+  }
+
+  .section-content h2,
+  .experience-item h3,
+  .education-item h3,
+  .project-item h3 {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+  }
+
+  .section-content p {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+  }
+
+  /* TAGS - Mobile Sizing */
+  .tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  .tag {
+    padding: 0.4rem 0.7rem;
+    font-size: 0.75rem;
+    border-radius: 4px;
+  }
+
+  /* BUTTONS & INTERACTIVE - Tap-Friendly (44px min) */
+  a,
+  button {
+    min-height: 44px;
+    padding: 12px 16px;
+  }
+
+  /* EXPERIENCE ITEMS */
+  .experience-item {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--color-border, #e0e0e0);
+  }
+
+  .experience-item:last-child {
+    border-bottom: none;
+  }
+
+  /* EDUCATION ITEMS */
+  .education-item {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--color-border, #e0e0e0);
+  }
+
+  .education-item:last-child {
+    border-bottom: none;
+  }
+
+  /* PROJECT ITEMS */
+  .projects-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .project-item {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--color-border, #e0e0e0);
+  }
+
+  .project-item:last-child {
+    border-bottom: none;
+  }
+
+  /* INLINE IMAGES - Full Width */
+  .inline-photo {
+    max-width: 100%;
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin: 1rem 0;
+    display: block;
+  }
+
+  /* CONTACT LINKS */
+  .contact-link {
+    display: block;
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+  }
 }
 
 /* ============================================

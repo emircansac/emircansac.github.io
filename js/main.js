@@ -147,6 +147,10 @@ function prefersReducedMotion() {
  * @param {'card' | 'section'} mode
  */
 function setNavMode(mode) {
+    // Mobile: always force section mode
+    if (isMobile()) { 
+        mode = 'section';
+    }
     navMode = mode;
     document.body.classList.toggle('nav-mode-card', mode === 'card');
     document.body.classList.toggle('nav-mode-section', mode === 'section');
@@ -186,39 +190,50 @@ function returnToCardMode() {
  * @returns {number} Index of the active section (0-5)
  */
 function getCurrentSection() {
-    // #region agent log
-    // fetch('http://127.0.0.1:7243/ingest/b7967069-ff3f-4945-b82f-94c4d5d7fcfe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'run1',hypothesisId:'H1',location:'main.js:111',message:'getCurrentSection_enter',data:{isNavigating,targetSection,navigableCount:navigableSections.length,navigableSectionIds,scrollLeft:sectionsWrapper?.scrollLeft},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
-    // During navigation, use targetSection to avoid mid-animation calculation errors
     if (isNavigating) {
+        console.log('[GET_CURRENT] isNavigating=true, return targetSection:', targetSection);
         return targetSection;
     }
 
     if (!navigableSections.length) {
+        console.log('[GET_CURRENT] No navigable sections, return 0');
         return 0;
     }
 
+    if (isMobile()) {
+        // Mobilde scrollTop kullan
+        const scrollY = sectionsWrapper.scrollTop;
+        let closestIndex = 0;
+        let closestDistance = Infinity;
+
+        navigableSections.forEach((section, index) => {
+            const distance = Math.abs(section.offsetTop - scrollY);
+            if (distance < closestDistance) {
+                closestDistance = distance;
+                closestIndex = index;
+            }
+        });
+
+        return closestIndex;
+    }
+
+    // DESKTOP: Use scrollLeft (horizontal scroll)
     const scrollLeft = sectionsWrapper.scrollLeft;
+    console.log('[GET_CURRENT DESKTOP]', { scrollLeft });
+
     let closestIndex = 0;
     let closestDistance = Infinity;
 
     navigableSections.forEach((section, index) => {
         const distance = Math.abs(section.offsetLeft - scrollLeft);
+        console.log(`  Section ${index} (${section.id}): offsetLeft=${section.offsetLeft}, distance=${distance}`);
         if (distance < closestDistance) {
             closestDistance = distance;
             closestIndex = index;
         }
     });
 
-    if (DEBUG_NAV) {
-        console.log('[GET_CURRENT]', {
-            scrollLeft: Math.round(scrollLeft),
-            closestIndex,
-            closestDistance: Math.round(closestDistance),
-            isNavigating
-        });
-    }
-
+    console.log('[GET_CURRENT DESKTOP] Result:', { closestIndex, closestDistance });
     return closestIndex;
 }
 
@@ -286,6 +301,11 @@ function isAtBottom(sectionContent) {
  * @param {WheelEvent} event - The wheel event
  */
 function handleWheelEvent(event) {
+    // Completely skip wheel routing on mobile - use native scroll
+    if (isMobile()) {
+        return;
+    }
+    
     const wheelNow = Date.now();
     const wheelDeltaSinceLast = lastWheelEventTime ? (wheelNow - lastWheelEventTime) : Number.POSITIVE_INFINITY;
     lastWheelEventTime = wheelNow;
@@ -309,11 +329,6 @@ function handleWheelEvent(event) {
         event.preventDefault();
         if (DEBUG_NAV) console.log('[SCROLL BLOCKED]', 'Navigation in progress');
         return;
-    }
-    
-    // Disable custom scroll routing on mobile
-    if (isMobile()) {
-        return; // Let browser handle scrolling naturally
     }
 
     // Card mode: scrolling down enters section mode
@@ -601,14 +616,47 @@ function scrollToSection(index) {
  */
 function updateActiveSection() {
     const currentIndex = getCurrentSection();
-    
+
+    console.log('=== UPDATE ACTIVE SECTION ===');
+    console.log('isMobile:', isMobile());
+    console.log('currentIndex (from getCurrentSection):', currentIndex);
+    console.log('navigableNavButtons.length:', navigableNavButtons.length);
+    console.log('navigableSections.length:', navigableSections.length);
+
+    navigableSections.forEach((section, idx) => {
+        console.log(`  Section ${idx} (${section.id}):`, {
+            offsetTop: section.offsetTop,
+            offsetLeft: section.offsetLeft,
+            offsetHeight: section.offsetHeight,
+            offsetWidth: section.offsetWidth
+        });
+    });
+
+    console.log('sectionsWrapper:', {
+        scrollTop: sectionsWrapper.scrollTop,
+        scrollLeft: sectionsWrapper.scrollLeft,
+        offsetHeight: sectionsWrapper.offsetHeight,
+        offsetWidth: sectionsWrapper.offsetWidth
+    });
+
     navigableNavButtons.forEach((button, index) => {
-        if (index === currentIndex) {
+        const shouldBeActive = index === currentIndex;
+        const isCurrentlyActive = button.classList.contains('active');
+
+        console.log(`  Button ${index} (${button.textContent}):`, {
+            shouldBeActive,
+            isCurrentlyActive,
+            willChange: shouldBeActive !== isCurrentlyActive
+        });
+
+        if (shouldBeActive) {
             button.classList.add('active');
         } else {
             button.classList.remove('active');
         }
     });
+
+    console.log('=== END UPDATE ACTIVE ===\n');
 
     if (navCardItems.length) {
         navCardItems.forEach((card, index) => {
@@ -747,74 +795,216 @@ function handleHorizontalScroll() {
  */
 function initScrollHandlers() {
     
-    // Only initialize custom scroll routing on desktop
-    if (!isMobile()) {
-        // Listen for wheel events on the sections wrapper
-        sectionsWrapper.addEventListener('wheel', handleWheelEvent, { passive: false });
-        window.addEventListener('wheel', (event) => {
-            if (navMode === 'card' && !isMobile()) {
-                handleWheelEvent(event);
-            }
-        }, { passive: false, capture: true });
-        
-        // Listen for horizontal scroll to update active section
-        sectionsWrapper.addEventListener('scroll', handleHorizontalScroll);
-        
-        // Initialize scroll hints
-        initScrollHints();
-        
-        // Set initial active section
-        updateActiveSection();
-        
-        // Add click handlers to navigation buttons
-        navigableNavButtons.forEach((button, index) => {
-            button.addEventListener('click', () => {
-                if (isNavigating) {
-                    if (DEBUG_NAV) console.log('[NAV CLICK] Blocked: already navigating');
-                    return;
-                }
-                
-                const targetSectionId = NAVIGABLE_SECTION_IDS[index];
-                const targetSectionIndex = navigableSections.findIndex((section) => section.id === targetSectionId);
-                if (targetSectionIndex === -1) {
-                    return;
-                }
-                
-                if (DEBUG_NAV) {
-                    console.log('[NAV CLICK]', {
-                        buttonIndex: index,
-                        dataSection: button.dataset.section,
-                        targetSection: targetSectionIndex,
-                        navigationSource: 'nav',
-                        isMobile: isMobile()
-                    });
-                }
-                
-                navigationSource = 'nav';
-                if (navMode === 'card') {
-                    enterSectionMode(targetSectionIndex);
-                    return;
-                }
-                scrollToSection(targetSectionIndex);
-            });
+    // Mobile: only vertical scroll hints, skip all horizontal logic
+    if (isMobile()) {
+        sectionContents.forEach(content => {
+            content.addEventListener('scroll', handleSectionContentScroll);
         });
+        return; // Skip desktop wheel routing
     }
     
-    // Listen for vertical scroll on each section content to hide hints (works on both mobile and desktop)
+    // Desktop: Initialize custom scroll routing
+    // Listen for wheel events on the sections wrapper
+    sectionsWrapper.addEventListener('wheel', handleWheelEvent, { passive: false });
+    window.addEventListener('wheel', (event) => {
+        if (navMode === 'card' && !isMobile()) {
+            handleWheelEvent(event);
+        }
+    }, { passive: false, capture: true });
+    
+    // Listen for horizontal scroll to update active section
+    sectionsWrapper.addEventListener('scroll', handleHorizontalScroll);
+    
+    // Initialize scroll hints
+    initScrollHints();
+    
+    // Set initial active section
+    updateActiveSection();
+    
+    // Add click handlers to navigation buttons
+    navigableNavButtons.forEach((button, index) => {
+        button.addEventListener('click', () => {
+            if (isNavigating) {
+                if (DEBUG_NAV) console.log('[NAV CLICK] Blocked: already navigating');
+                return;
+            }
+            
+            const targetSectionId = NAVIGABLE_SECTION_IDS[index];
+            const targetSectionIndex = navigableSections.findIndex((section) => section.id === targetSectionId);
+            if (targetSectionIndex === -1) {
+                return;
+            }
+            
+            if (DEBUG_NAV) {
+                console.log('[NAV CLICK]', {
+                    buttonIndex: index,
+                    dataSection: button.dataset.section,
+                    targetSection: targetSectionIndex,
+                    navigationSource: 'nav',
+                    isMobile: isMobile()
+                });
+            }
+            
+            navigationSource = 'nav';
+            
+            // Mobile: Use scrollIntoView
+            if (isMobile()) {
+                const targetSection = navigableSections[targetSectionIndex];
+                if (targetSection) {
+                    targetSection.scrollIntoView({ behavior: 'smooth' });
+                }
+                return;
+            }
+            
+            // Desktop: Use existing scrollToSection
+            if (navMode === 'card') {
+                enterSectionMode(targetSectionIndex);
+                return;
+            }
+            scrollToSection(targetSectionIndex);
+        });
+    });
+    
+    // Listen for vertical scroll on each section content to hide hints
     sectionContents.forEach(content => {
         content.addEventListener('scroll', handleSectionContentScroll);
     });
+}
+
+/**
+ * Initializes mobile navigation with vertical scrollIntoView
+ */
+function initMobileNavigation() {
+    console.log('[INIT MOBILE NAV] Starting', {
+        isMobile: isMobile(),
+        navigableSectionsCount: navigableSections.length,
+        navigableNavButtonsCount: navigableNavButtons.length
+    });
     
-    // Handle window resize to reinitialize if switching between mobile/desktop
+    // Add click handlers to navigation buttons for vertical scroll
+    navigableNavButtons.forEach((button, index) => {
+        button.addEventListener('click', () => {
+            console.log('[NAV CLICK MOBILE]', { index, sectionId: navigableSections[index]?.id });
+            const targetSection = navigableSections[index];
+            if (targetSection) {
+                targetSection.scrollIntoView({ 
+                    behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+                    block: 'start'
+                });
+                // Force update after scroll completes
+                setTimeout(() => {
+                    updateActiveSection();
+                }, 500);
+            }
+        });
+    });
+    
+    // Simple scroll-based detection (no IntersectionObserver - more reliable)
+    // Aggressively listen to ALL possible scroll sources
+    const handleMobileScroll = () => {
+        updateActiveSection();
+    };
+    
+    // Listen to multiple scroll sources
+    sectionsWrapper.addEventListener('scroll', handleMobileScroll, { passive: true });
+    window.addEventListener('scroll', handleMobileScroll, { passive: true });
+    document.addEventListener('scroll', handleMobileScroll, { passive: true });
+    
+    // Also use requestAnimationFrame for continuous checking (fallback)
+    let lastScrollY = -1;
+    let rafId = null;
+    
+    const checkScrollPosition = () => {
+        const currentScrollY = sectionsWrapper.scrollTop || window.scrollY || document.documentElement.scrollTop;
+        if (currentScrollY !== lastScrollY) {
+            lastScrollY = currentScrollY;
+            updateActiveSection();
+        }
+        rafId = requestAnimationFrame(checkScrollPosition);
+    };
+    
+    // Start continuous checking
+    rafId = requestAnimationFrame(checkScrollPosition);
+    
+    // İlk yüklemede: Önce TÜM active class'ları temizle, sonra doğru olanı seç
+    console.log('[INIT MOBILE] Clearing all active states and setting correct one');
+    navigableNavButtons.forEach(btn => btn.classList.remove('active'));
+    
+    // Multiple update attempts to ensure correct state
+    updateActiveSection();
+    setTimeout(() => updateActiveSection(), 50);
+    setTimeout(() => updateActiveSection(), 150);
+    setTimeout(() => updateActiveSection(), 500);
+    
+    // Listen for vertical scroll on each section content to hide hints
+    sectionContents.forEach(content => {
+        content.addEventListener('scroll', handleSectionContentScroll);
+    });
+}
+
+/**
+ * Sets active section by index (helper for IntersectionObserver)
+ */
+function setActiveSectionByIndex(index) {
+    if (index < 0 || index >= navigableNavButtons.length) return;
+    
+    navigableNavButtons.forEach((button) => {
+        button.classList.remove('active');
+    });
+    
+    const activeButton = navigableNavButtons[index];
+    if (activeButton) {
+        activeButton.classList.add('active');
+        console.log('[SET ACTIVE BY INDEX]', { 
+            index, 
+            buttonText: activeButton.textContent 
+        });
+    }
+
+    if (navCardItems.length) {
+        navCardItems.forEach((card, i) => {
+            card.classList.toggle('is-active', i === index);
+        });
+    }
+}
+
+/**
+ * Initializes resize handler for mobile/desktop switching
+ */
+function initResizeHandler() {
     let resizeTimeout;
+    let wasMobile = isMobile();
+    
     window.addEventListener('resize', () => {
         clearTimeout(resizeTimeout);
         resizeTimeout = setTimeout(() => {
-            // Reinitialize handlers if switching between mobile/desktop
-            if (!isMobile()) {
-                updateActiveSection();
+            const isNowMobile = isMobile();
+            
+            // Mode changed desktop ↔ mobile
+            if (wasMobile !== isNowMobile) {
+                console.log('[RESIZE] Mode switch:', wasMobile ? 'mobile→desktop' : 'desktop→mobile');
+                
+                // RESET SCROLL POSITION (important!)
+                // Go back to "about" section when switching modes
+                const aboutSection = navigableSections[0];
+                if (aboutSection) {
+                    if (isNowMobile) {
+                        // Desktop → Mobile: reset to top
+                        aboutSection.scrollIntoView({ behavior: 'instant' });
+                    } else {
+                        // Mobile → Desktop: reset to left
+                        sectionsWrapper.scrollTo({ left: aboutSection.offsetLeft, behavior: 'instant' });
+                    }
+                }
+                
+                setNavMode(isNowMobile ? 'section' : 'card');
+                
+                // Update tracking variable
+                wasMobile = isNowMobile;
             }
-            setNavMode(isMobile() ? 'section' : 'card');
+            
+            // Force recalculate active button based on new scroll position
+            updateActiveSection();
         }, 250);
     });
 }
@@ -1157,7 +1347,12 @@ if (document.readyState === 'loading') {
         initLanguageSystem();
         initNavMode();
         initNavCards();
-        initScrollHandlers();
+        if (isMobile()) {
+            initMobileNavigation();
+        } else {
+            initScrollHandlers();
+        }
+        initResizeHandler();
         // #region agent log
         // fetch('http://127.0.0.1:7243/ingest/b7967069-ff3f-4945-b82f-94c4d5d7fcfe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'run1',hypothesisId:'H1',location:'main.js:1118',message:'bg_snapshot_ready',data:{bodyBg:getComputedStyle(document.body).backgroundColor,cvContainerBg:document.querySelector('.cv-container')?getComputedStyle(document.querySelector('.cv-container')).backgroundColor:null,sectionsWrapperBg:document.querySelector('.sections-wrapper')?getComputedStyle(document.querySelector('.sections-wrapper')).backgroundColor:null,cvSectionBg:document.querySelector('.cv-section')?getComputedStyle(document.querySelector('.cv-section')).backgroundColor:null},timestamp:Date.now()})}).catch(()=>{});
         // #endregion
@@ -1174,7 +1369,12 @@ if (document.readyState === 'loading') {
     initLanguageSystem();
     initNavMode();
     initNavCards();
-    initScrollHandlers();
+    if (isMobile()) {
+        initMobileNavigation();
+    } else {
+        initScrollHandlers();
+    }
+    initResizeHandler();
     // #region agent log
     // fetch('http://127.0.0.1:7243/ingest/b7967069-ff3f-4945-b82f-94c4d5d7fcfe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'run1',hypothesisId:'H1',location:'main.js:1130',message:'bg_snapshot_ready',data:{bodyBg:getComputedStyle(document.body).backgroundColor,cvContainerBg:document.querySelector('.cv-container')?getComputedStyle(document.querySelector('.cv-container')).backgroundColor:null,sectionsWrapperBg:document.querySelector('.sections-wrapper')?getComputedStyle(document.querySelector('.sections-wrapper')).backgroundColor:null,cvSectionBg:document.querySelector('.cv-section')?getComputedStyle(document.querySelector('.cv-section')).backgroundColor:null},timestamp:Date.now()})}).catch(()=>{});
     // #endregion
