@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+# Block common email harvester bots
+User-agent: EmailCollector
+Disallow: /
+
+User-agent: EmailSiphon
+Disallow: /
+
+User-agent: WebBandit
+Disallow: /
+
+Sitemap: https://emircansac.github.io/sitemap.xml

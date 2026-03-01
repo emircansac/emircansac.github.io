@@ -1336,12 +1336,34 @@ function verifySections() {
 }
 
 // ============================================
+// Email Protection (anti-harvest)
+// ============================================
+
+function initEmailProtection() {
+    // Reversed char codes of the email address
+    const d = [109,111,99,46,108,105,97,109,103,64,99,97,115,110,97,99,114,105,109,101];
+    const email = d.map(c => String.fromCharCode(c)).reverse().join('');
+
+    document.querySelectorAll('.email-protected').forEach(el => {
+        el.href = 'mai' + 'lto:' + email;
+        const textEl = el.querySelector('.email-text');
+        if (textEl) {
+            textEl.textContent = email;
+        } else {
+            el.textContent = email;
+        }
+        el.setAttribute('aria-label', 'Email ' + email);
+    });
+}
+
+// ============================================
 // Initialize Everything
 // ============================================
 
 // Initialize when DOM is ready
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
+        initEmailProtection();
         relocateSkillsSection();
         verifySections();
         initLanguageSystem();
@@ -1364,6 +1386,7 @@ if (document.readyState === 'loading') {
         // #endregion
     });
 } else {
+    initEmailProtection();
     relocateSkillsSection();
     verifySections();
     initLanguageSystem();
