@@ -1027,8 +1027,8 @@ function initNavCards() {
             en: { label: 'Career', title: 'Experience', summary: 'Project development, research coordination, editorial work in civil society. Information disorder, media literacy, hate speech monitoring.', affordance: '↓ scroll to explore' }
         },
         2: {
-            tr: { label: 'Eğitim', title: 'Eğitim', summary: 'Siyaset bilimi ve Türkiye çalışmaları üzerine eğitim aldım. Teknoloji ve toplum ilişkisini, teori ve pratiği birleştirerek ele alıyorum.', affordance: '↓ kaydırarak keşfedin' },
-            en: { label: 'Education', title: 'Education', summary: 'Political science, Turkish studies, design–technology–society. Bringing theory into practice.', affordance: '↓ scroll to explore' }
+            tr: { label: 'Eğitim', title: 'Eğitim', summary: 'Yeditepe\'de siyaset, Sabancı\'da Türkiye çalışmaları, Koç\'ta teknoloji ve toplum. Akademi tüm yolculuğumun omurgası.', affordance: '↓ kaydırarak keşfedin' },
+            en: { label: 'Education', title: 'Education', summary: 'BA at Yeditepe, Turkish studies at Sabancı, MA at Koç. Academia has been the spine of the path.', affordance: '↓ scroll to explore' }
         },
         4: {
             tr: { label: 'Projeler', title: 'Projeler', summary: 'Bilgi düzensizliği, medya okuryazarlığı ve iklim dezenformasyonu alanlarında yürüttüğüm seçili projeler.', affordance: '↓ kaydırarak keşfedin' },
