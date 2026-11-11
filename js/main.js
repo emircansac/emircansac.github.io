@@ -1202,8 +1202,23 @@ function switchLanguage(lang) {
     // Update HTML lang attribute
     document.documentElement.lang = lang;
     
-    // Update page title
-    document.title = lang === 'tr' ? '✦ Emircan Saç' : '✦ Emircan Saç';
+    // Update page title and description for the active language
+    const pageMeta = {
+        tr: {
+            title: 'Emircan Saç - Proje Geliştirme, Araştırma ve Yazı',
+            description: 'CV ve portföy. Proje geliştirme, bilgi düzensizliği araştırması, medya okuryazarlığı. Sivil toplum, gazetecilik, akademi.'
+        },
+        en: {
+            title: 'Emircan Saç - Project Development, Research & Writing',
+            description: 'CV and portfolio. Project development, information disorder research, media literacy. Civil society, journalism, academia.'
+        }
+    };
+    const meta = pageMeta[lang] || pageMeta.tr;
+    document.title = meta.title;
+    const descriptionTag = document.querySelector('meta[name="description"]');
+    if (descriptionTag) {
+        descriptionTag.setAttribute('content', meta.description);
+    }
     
     // Show/hide content blocks based on language (exclude lang buttons - they use dedicated logic above)
     const allLangBlocks = document.querySelectorAll('[data-lang]');

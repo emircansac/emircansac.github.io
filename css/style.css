@@ -539,14 +539,8 @@ body.nav-mode-section .section-content p {
     max-width: 68ch;
 }
 
-body.nav-mode-section .section-content h1 {
-    margin-bottom: 36px;
-    max-width: 68ch;
-}
-
 body.nav-mode-section .section-content h2 {
-    margin-top: 32px;
-    margin-bottom: 12px;
+    margin-bottom: 36px;
     max-width: 68ch;
 }
 
@@ -593,21 +587,12 @@ body.nav-mode-section .section-content strong {
 }
 
 /* Typography */
-.cv-section h1 {
+.cv-section h2 {
     font-size: 3rem;
     margin-bottom: 40px;
     color: var(--color-dark);
     font-weight: 600;
     letter-spacing: -0.01em;
-}
-
-.cv-section h2 {
-    font-size: 1.8rem;
-    margin-top: 36px;
-    margin-bottom: 14px;
-    color: var(--color-dark);
-    font-weight: 500;
-    letter-spacing: -0.005em;
 }
 
 .cv-section p {
@@ -932,13 +917,12 @@ body.nav-mode-section .section-content strong {
   }
 
   /* TYPOGRAPHY - Mobile Scaling */
-  .section-content h1 {
+  .section-content h2 {
     font-size: 1.75rem;
     margin-bottom: 1.5rem;
     margin-top: 0;
   }
 
-  .section-content h2,
   .experience-item h3,
   .education-item h3,
   .project-item h3 {
@@ -1088,7 +1072,6 @@ body.nav-mode-section .section-content strong {
 }
 
 /* Subtle transitions for section content */
-.cv-section h1,
 .cv-section h2 {
     transition: opacity 0.3s ease;
 }
