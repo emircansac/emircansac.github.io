@@ -882,6 +882,14 @@ body.nav-mode-section .section-content strong {
     margin-bottom: 0;
   }
 
+  /* Desktop hides identity in section mode (fixed overlay).
+     On mobile it is in-flow; keep it visible or it leaves an empty gap. */
+  body.nav-mode-section .identity-block {
+    opacity: 1;
+    pointer-events: auto;
+    visibility: visible;
+  }
+
   .identity-name {
     font-size: 1.5rem;
     font-weight: 600;
