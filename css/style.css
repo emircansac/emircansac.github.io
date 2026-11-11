@@ -117,6 +117,14 @@ body {
     color: var(--color-dark);
 }
 
+.identity-photo {
+    display: none;
+}
+
+.identity-copy {
+    display: contents;
+}
+
 .identity-name {
     font-size: 1.1rem;
     font-weight: 600;
@@ -339,9 +347,38 @@ body.nav-mode-section .identity-block {
     transition: opacity 0.45s ease, transform 0.45s ease;
 }
 
+.card-portrait {
+    display: none;
+}
+
+body.nav-mode-card .card-portrait {
+    display: block;
+    position: fixed;
+    top: 50%;
+    left: 3vw;
+    transform: translateY(-50%);
+    width: clamp(140px, 18vw, 220px);
+    aspect-ratio: 3 / 4;
+    border-radius: 18px;
+    overflow: hidden;
+    background: #e8ddd4;
+    box-shadow: 0 8px 18px var(--shadow-color);
+    z-index: 1001;
+}
+
+body.nav-mode-card .card-portrait img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 18%;
+    display: block;
+}
+
 body.nav-mode-card .nav-card-container {
     opacity: 1;
     pointer-events: auto;
+    left: calc(50% + clamp(70px, 10vw, 130px));
+    width: min(68vw, 900px);
     transform: translate(-50%, -50%);
 }
 
@@ -869,7 +906,8 @@ body.nav-mode-section .section-content strong {
     display: none !important;
   }
 
-  .nav-card-container {
+  .nav-card-container,
+  .card-portrait {
     display: none !important;
   }
 
@@ -884,12 +922,34 @@ body.nav-mode-section .section-content strong {
     left: 0;
     right: 0;
     z-index: 102;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 0.75rem;
     padding: 1rem;
     padding-right: 4.5rem;
     background: var(--role-base, #ffffff);
     border-bottom: 1px solid var(--color-border, #e0e0e0);
     margin-bottom: 0;
     transition: padding 0.4s ease;
+  }
+
+  .identity-copy {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .identity-photo {
+    display: block;
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    object-fit: cover;
+    object-position: 50% 18%;
+    flex-shrink: 0;
+    background: #e8ddd4;
+    transition: width 0.4s ease, height 0.4s ease, opacity 0.25s ease, margin 0.4s ease;
   }
 
   /* Desktop hides identity in section mode (fixed overlay).
@@ -944,6 +1004,13 @@ body.nav-mode-section .section-content strong {
     opacity: 0;
     margin: 0;
     pointer-events: none;
+  }
+
+  .identity-block.is-compact .identity-photo {
+    width: 0;
+    height: 0;
+    opacity: 0;
+    margin: 0;
   }
 
   /* LANGUAGE SWITCHER - Fixed Top Right */
