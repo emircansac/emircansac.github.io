@@ -782,9 +782,17 @@ body.nav-mode-section .section-content strong {
     overflow-y: auto !important;
     overflow-x: hidden !important;
     height: 100vh;
+    padding-top: 13rem;
     padding-bottom: 220px;
     width: 100% !important;
     scroll-snap-type: none !important;
+    scroll-padding-top: 13rem;
+    transition: padding-top 0.4s ease;
+  }
+
+  .identity-block.is-compact ~ .sections-wrapper {
+    padding-top: 3.25rem;
+    scroll-padding-top: 3.25rem;
   }
 
   .cv-section {
@@ -869,17 +877,19 @@ body.nav-mode-section .section-content strong {
     display: none !important;
   }
 
-  /* IDENTITY BLOCK - Sticky Header Mobile */
+  /* IDENTITY BLOCK - Fixed Header Mobile */
   .identity-block {
-    position: sticky;
+    position: fixed;
     top: 0;
     left: 0;
     right: 0;
     z-index: 102;
     padding: 1rem;
+    padding-right: 4.5rem;
     background: var(--role-base, #ffffff);
     border-bottom: 1px solid var(--color-border, #e0e0e0);
     margin-bottom: 0;
+    transition: padding 0.4s ease;
   }
 
   /* Desktop hides identity in section mode (fixed overlay).
@@ -894,6 +904,7 @@ body.nav-mode-section .section-content strong {
     font-size: 1.5rem;
     font-weight: 600;
     margin-bottom: 0.75rem;
+    transition: font-size 0.4s ease, margin 0.4s ease;
   }
 
   .identity-email {
@@ -907,12 +918,40 @@ body.nav-mode-section .section-content strong {
     display: block;
   }
 
+  .identity-email,
+  .identity-writing {
+    overflow: hidden;
+    max-height: 3.5rem;
+    opacity: 1;
+    transition: max-height 0.4s ease, opacity 0.25s ease, margin 0.4s ease, padding 0.4s ease;
+  }
+
+  .identity-block.is-compact {
+    padding-top: 0.55rem;
+    padding-bottom: 0.55rem;
+  }
+
+  .identity-block.is-compact .identity-name {
+    font-size: 1rem;
+    margin-bottom: 0;
+  }
+
+  .identity-block.is-compact .identity-email,
+  .identity-block.is-compact .identity-writing {
+    max-height: 0;
+    min-height: 0;
+    padding: 0;
+    opacity: 0;
+    margin: 0;
+    pointer-events: none;
+  }
+
   /* LANGUAGE SWITCHER - Fixed Top Right */
   .language-switcher {
     position: fixed;
-    top: 1rem;
+    top: 0.55rem;
     right: 1rem;
-    z-index: 101;
+    z-index: 103;
     display: flex;
     gap: 0.5rem;
   }

@@ -130,6 +130,63 @@ function isMobile() {
     return window.innerWidth <= 768;
 }
 
+const IDENTITY_COMPACT_ON = 24;
+const IDENTITY_COMPACT_OFF = 8;
+const IDENTITY_EXPAND_DELAY_MS = 280;
+let identityIsCompact = false;
+let identityExpandTimer = null;
+
+function getMobileScrollY() {
+    const wrapperScroll = sectionsWrapper ? sectionsWrapper.scrollTop : 0;
+    const windowScroll = window.scrollY || document.documentElement.scrollTop || 0;
+    let innerScroll = 0;
+    sectionContents.forEach((el) => {
+        if (el.scrollTop > innerScroll) {
+            innerScroll = el.scrollTop;
+        }
+    });
+    return Math.max(wrapperScroll, windowScroll, innerScroll);
+}
+
+function setIdentityCompact(compact) {
+    const identity = document.querySelector('.identity-block');
+    if (!identity) {
+        return;
+    }
+    identityIsCompact = compact;
+    identity.classList.toggle('is-compact', compact);
+}
+
+function updateIdentityCompact() {
+    const identity = document.querySelector('.identity-block');
+    if (!identity) {
+        return;
+    }
+    if (!isMobile()) {
+        clearTimeout(identityExpandTimer);
+        identityExpandTimer = null;
+        setIdentityCompact(false);
+        return;
+    }
+    const y = getMobileScrollY();
+    if (y > IDENTITY_COMPACT_ON) {
+        clearTimeout(identityExpandTimer);
+        identityExpandTimer = null;
+        if (!identityIsCompact) {
+            setIdentityCompact(true);
+        }
+        return;
+    }
+    if (identityIsCompact && y <= IDENTITY_COMPACT_OFF && !identityExpandTimer) {
+        identityExpandTimer = setTimeout(() => {
+            identityExpandTimer = null;
+            if (getMobileScrollY() <= IDENTITY_COMPACT_OFF) {
+                setIdentityCompact(false);
+            }
+        }, IDENTITY_EXPAND_DELAY_MS);
+    }
+}
+
 /**
  * Checks if user prefers reduced motion
  * @returns {boolean} True if reduced motion is preferred
@@ -743,6 +800,9 @@ function handleSectionContentScroll(event) {
             showScrollHint(sectionIndex);
         }
     }
+    if (isMobile()) {
+        updateIdentityCompact();
+    }
 }
 
 /**
@@ -894,6 +954,7 @@ function initMobileNavigation() {
                 // Force update after scroll completes
                 setTimeout(() => {
                     updateActiveSection();
+                    updateIdentityCompact();
                 }, 500);
             }
         });
@@ -903,6 +964,7 @@ function initMobileNavigation() {
     // Aggressively listen to ALL possible scroll sources
     const handleMobileScroll = () => {
         updateActiveSection();
+        updateIdentityCompact();
     };
     
     // Listen to multiple scroll sources
@@ -919,6 +981,7 @@ function initMobileNavigation() {
         if (currentScrollY !== lastScrollY) {
             lastScrollY = currentScrollY;
             updateActiveSection();
+            updateIdentityCompact();
         }
         rafId = requestAnimationFrame(checkScrollPosition);
     };
@@ -932,6 +995,7 @@ function initMobileNavigation() {
     
     // Multiple update attempts to ensure correct state
     updateActiveSection();
+    updateIdentityCompact();
     setTimeout(() => updateActiveSection(), 50);
     setTimeout(() => updateActiveSection(), 150);
     setTimeout(() => updateActiveSection(), 500);
@@ -998,6 +1062,7 @@ function initResizeHandler() {
                 }
                 
                 setNavMode(isNowMobile ? 'section' : 'card');
+                updateIdentityCompact();
                 
                 // Update tracking variable
                 wasMobile = isNowMobile;
