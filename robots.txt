@@ -11,4 +11,4 @@ Disallow: /
 User-agent: WebBandit
 Disallow: /
 
-Sitemap: https://emircansac.github.io/sitemap.xml
+Sitemap: https://emircansac.com/sitemap.xml
